@@ -1,184 +1,119 @@
-# Module: Authentication (AUTH)
+# Module: Authentication
 
 ---
 
-## 1. Module Identity
+## 1.0 Module Identity
 
-| Field | Value |
-|---|---|
-| **Module Name** | Authentication |
-| **Module ID** | AUTH |
-| **Platform** | Laravel API + Flutter |
-| **Status** | Active |
-| **Assigned Developer** | Priya Sharma |
-| **Creation Date** | 2024-01-20 |
-| **Last Updated** | 2024-06-01 |
-
----
-
-## 2. Purpose & Scope
-
-The Authentication module handles all user identity verification, session management, and access control for the Axone Client Portal. It serves all roles — Super Admin, Admin, Manager, User, and Guest. This module does NOT manage role-specific permissions (see admin.md) or user profile management.
+| Field            | Details                                   |
+|------------------|-------------------------------------------|
+| **Module Name**  | Authentication                            |
+| **Module Code**  | AUTH                                      |
+| **Platform**     | Laravel + React (Inertia)                 |
+| **Status**       | Active                                    |
+| **Developer**    | *(Assign)*                                |
+| **Created Date** | 2025-12-13                                |
 
 ---
 
-## 3. User Roles & Permissions
+## 2.0 Purpose & Scope
 
-| Role | Login | Register | Reset Password | View Own Profile | Manage Users |
-|---|---|---|---|---|---|
-| Super Admin | ✅ | ❌ (assigned only) | ✅ | ✅ | ✅ |
-| Admin | ✅ | ❌ | ✅ | ✅ | ✅ |
-| Manager | ✅ | ❌ | ✅ | ✅ | ❌ |
-| User | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Guest | ❌ | ❌ | ❌ | ❌ | ❌ |
+The Authentication module handles all user identity verification for the **admin web panel**. It provides login, registration, password reset, email verification, and profile password update. This module governs access to all protected routes under the `auth` middleware. It does **not** cover external client API authentication (see `license_api.md`).
 
 ---
 
-## 4. Feature List
+## 3.0 User Roles & Permissions
+
+| Role  | Can Login | Can Register | Can Reset Password | Can Update Profile |
+|-------|-----------|--------------|--------------------|--------------------|
+| Admin | ✅         | ✅ (via register route) | ✅         | ✅                  |
+| User  | ✅         | ✅           | ✅                  | ✅                  |
+| Guest | ❌         | ✅           | ✅                  | ❌                  |
+
+---
+
+## 4.0 Feature List
 
 - [DONE] Email + Password Login
-- [DONE] Google OAuth Login
-- [DONE] JWT Access Token issuance (60-min expiry)
-- [DONE] Refresh Token (30-day expiry, rotation enabled)
-- [DONE] Logout (server-side token invalidation)
-- [DONE] Forgot Password (email link)
-- [DONE] Reset Password
-- [DONE] Rate Limiting (5 attempts/min per IP)
-- [IN PROGRESS] Biometric Login (Flutter — fingerprint/Face ID)
-- [PLANNED] Two-Factor Authentication (TOTP)
+- [DONE] User Registration
+- [DONE] Forgot Password (email reset link)
+- [DONE] Password Reset via token
+- [DONE] Email Verification flow
+- [DONE] Password update (authenticated)
+- [DONE] Session Logout
+- [DONE] Profile edit (name, email, password)
+- [PLANNED] OAuth / Social Login
 
 ---
 
-## 5. API Endpoints
+## 5.0 API Endpoints
 
-### POST /api/v1/auth/login
+> These are web routes (session-based), not REST API endpoints.
 
-| Field | Value |
-|---|---|
-| **Auth Required** | No (Public) |
-| **Description** | Authenticates user with email and password, returns access + refresh tokens |
-| **Request Headers** | `Content-Type: application/json` |
-| **Request Body** | `{ "email": "string", "password": "string" }` |
-| **Success (200)** | `{ "access_token": "string", "refresh_token": "string", "expires_in": 3600, "user": { "id": 1, "name": "string", "role": "string" } }` |
-| **Error (401)** | `{ "message": "Invalid credentials" }` |
-| **Error (422)** | `{ "errors": { "email": ["The email field is required."] } }` |
-| **Error (429)** | `{ "message": "Too Many Requests" }` |
-| **Notes** | Rate limited: 5 attempts per minute per IP. Token uses Laravel Sanctum. |
-
-### POST /api/v1/auth/refresh
-
-| Field | Value |
-|---|---|
-| **Auth Required** | No (Refresh token in body) |
-| **Description** | Issues a new access token using a valid refresh token |
-| **Request Body** | `{ "refresh_token": "string" }` |
-| **Success (200)** | `{ "access_token": "string", "expires_in": 3600 }` |
-| **Error (401)** | `{ "message": "Invalid or expired refresh token" }` |
-
-### POST /api/v1/auth/logout
-
-| Field | Value |
-|---|---|
-| **Auth Required** | Yes (Bearer token) |
-| **Description** | Invalidates the current access token and refresh token on the server |
-| **Success (200)** | `{ "message": "Logged out successfully" }` |
-
-### POST /api/v1/auth/forgot-password
-
-| Field | Value |
-|---|---|
-| **Auth Required** | No |
-| **Request Body** | `{ "email": "string" }` |
-| **Success (200)** | `{ "message": "Password reset link sent to your email" }` |
-| **Notes** | Link valid for 60 minutes. Uses Mailgun for delivery. |
-
-### POST /api/v1/auth/reset-password
-
-| Field | Value |
-|---|---|
-| **Auth Required** | No (token from email link) |
-| **Request Body** | `{ "token": "string", "email": "string", "password": "string", "password_confirmation": "string" }` |
-| **Success (200)** | `{ "message": "Password reset successfully" }` |
-| **Error (422)** | `{ "errors": { "password": ["Minimum 8 characters required."] } }` |
+| Method | Route                          | Auth     | Controller                              | Purpose                   |
+|--------|-------------------------------|----------|-----------------------------------------|---------------------------|
+| GET    | `/login`                       | Guest    | `AuthenticatedSessionController@create` | Show login form            |
+| POST   | `/login`                       | Guest    | `AuthenticatedSessionController@store`  | Process login              |
+| POST   | `/logout`                      | Auth     | `AuthenticatedSessionController@destroy`| Logout user                |
+| GET    | `/register`                    | Guest    | `RegisteredUserController@create`       | Show registration form     |
+| POST   | `/register`                    | Guest    | `RegisteredUserController@store`        | Create new user            |
+| GET    | `/forgot-password`             | Guest    | `PasswordResetLinkController@create`    | Show forgot password form  |
+| POST   | `/forgot-password`             | Guest    | `PasswordResetLinkController@store`     | Send reset email           |
+| GET    | `/reset-password/{token}`      | Guest    | `NewPasswordController@create`          | Show reset form            |
+| POST   | `/reset-password`              | Guest    | `NewPasswordController@store`           | Process password reset     |
+| PUT    | `/password`                    | Auth     | `PasswordController@update`             | Update current password    |
 
 ---
 
-## 6. Database Tables
+## 6.0 Database Tables
 
-| Table | Key Columns | Notes |
-|---|---|---|
-| `users` | id, name, email, password, role_id, email_verified_at, created_at | Soft deletes enabled |
-| `personal_access_tokens` | id, tokenable_id, name, token (hashed), abilities, last_used_at | Sanctum tokens |
-| `password_reset_tokens` | email, token, created_at | Deleted after use |
-| `oauth_providers` | id, user_id, provider (google), provider_user_id, token | Google OAuth links |
-
----
-
-## 7. Business Logic
-
-### Login Flow
-1. Receive `email` and `password` from request.
-2. Validate inputs (email format, required fields).
-3. Check rate limit: if > 5 attempts from IP in last 60 seconds → return 429.
-4. Find user by email in `users` table.
-5. Verify password with `Hash::check()`.
-6. If invalid → increment attempt counter → return 401.
-7. If valid → generate Sanctum access token (60 min TTL) + refresh token (30 days).
-8. Return tokens and user data.
-
-### Refresh Token Flow
-1. Receive `refresh_token` from request.
-2. Validate token exists in `personal_access_tokens` and is not expired.
-3. Invalidate the old refresh token (rotation).
-4. Issue a new access token.
-5. Return new access token.
-
-### Logout Flow
-1. Authenticate request via Bearer token middleware.
-2. Call `$request->user()->currentAccessToken()->delete()` to invalidate token.
-3. Also delete associated refresh token.
-4. Return success message.
+| Table   | Key Columns                                    | Notes                          |
+|---------|------------------------------------------------|--------------------------------|
+| `users` | `id`, `name`, `email`, `password`, `role_id`, `status`, `email_verified_at` | Core user identity |
+| `password_reset_tokens` | `email`, `token`, `created_at`    | Token for password reset       |
+| `personal_access_tokens` | `tokenable_id`, `tokenable_type`, `token` | Sanctum tokens (API)  |
+| `sessions` | `id`, `user_id`, `ip_address`, `payload`   | Session storage                |
 
 ---
 
-## 8. Mobile Screens (Flutter)
+## 7.0 Business Logic
 
-| Screen Name | Route | Data Source | Key Interactions |
-|---|---|---|---|
-| Login Screen | `/login` | — | Email/password form, Google OAuth button, "Forgot Password" link |
-| Forgot Password Screen | `/forgot-password` | — | Email input, submit triggers API call |
-| Reset Password Screen | `/reset-password` | Deep link token | Password + confirm fields |
-| Biometric Prompt | Overlay (not a route) | Local biometric | Triggers on app resume if session exists |
-
----
-
-## 9. Error Handling
-
-| Error | HTTP Code | User-Facing Message |
-|---|---|---|
-| Invalid credentials | 401 | "Invalid email or password. Please try again." |
-| Account not found | 404 | "No account found with this email." |
-| Rate limit exceeded | 429 | "Too many attempts. Please wait 1 minute." |
-| Token expired | 401 | "Your session has expired. Please log in again." |
-| Validation failure | 422 | Field-specific error messages (e.g., "Email is required") |
-| Server error | 500 | "Something went wrong. Please contact support." |
+1. User submits email + password to `POST /login`.
+2. Laravel validates credentials against `users` table (bcrypt comparison).
+3. On success session is created, user is redirected to `/dashboard`.
+4. On failure validation error returned, 5-attempt lockout recommended (not yet implemented).
+5. Password reset sends a signed tokenized link to the user's email.
+6. Token expires after 60 minutes (Laravel default).
+7. Email verification sends a signed URL. The `verified` middleware blocks access until the email is verified.
 
 ---
 
-## 10. GitHub References
+## 8.0 Mobile Screens
 
-- Branch pattern: `feature/auth-[task]`, `fix/auth-[issue]`
-- Related PRs: #45 (Google OAuth), #62 (Rate Limiting), #88 (Refresh Token Rotation)
-- Open Issues: #187 (Expired JWT not redirecting on mobile — P1)
-- Milestone: v2.5.0 (2FA Implementation)
+N/A Web admin panel only.
 
 ---
 
-## 11. Change Log
+## 9.0 Error Handling
 
-| Date | Developer | Change |
-|---|---|---|
-| 2024-06-01 | Priya Sharma | Added refresh token rotation logic |
-| 2024-05-10 | Priya Sharma | Added Google OAuth via Socialite |
-| 2024-04-20 | Priya Sharma | Implemented rate limiting middleware |
-| 2024-03-01 | Priya Sharma | Initial Auth module: login, logout, forgot/reset password |
+| Scenario                   | HTTP Code | User Message                          |
+|---------------------------|-----------|---------------------------------------|
+| Invalid credentials        | 422       | "These credentials do not match our records." |
+| Unverified email           | Redirect  | Redirected to `/verify-email` prompt  |
+| Invalid reset token        | 422       | "This password reset token is invalid." |
+| Validation failure         | 422       | Field-level error messages via Inertia |
+
+---
+
+## 10.0 GitHub References
+
+- **Branch Pattern**: `feature/auth-[task-name]`, `fix/auth-[issue]`
+- **Module Doc**: `docs/modules/auth.md`
+
+---
+
+## 11.0 Change Log
+
+| Date       | Developer | Change                                     |
+|------------|-----------|---------------------------------------------|
+| 2025-12-13 | —         | Initial Auth module via Laravel Breeze setup |
+| 2025-12-13 | —         | Added `role_id`, `phone`, `status` to users  |

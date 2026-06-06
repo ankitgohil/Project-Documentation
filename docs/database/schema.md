@@ -1,22 +1,60 @@
-# Database Schema — AXN-042 Axone Client Portal
-
-**Engine:** MySQL 8.0
-**Charset:** utf8mb4
-**Collation:** utf8mb4_unicode_ci
+# Database Schema | Product Management System
 
 ---
 
-## Entity Relationship Overview
+## ERD Overview (Text Format)
 
 ```
-users ──< personal_access_tokens
-users ──< oauth_providers
-users ──< activity_logs
-users ──< notifications
-users ──< user_fcm_tokens
-users ──< reports
-users ──< tasks
-users >── roles (via model_has_roles)
+customers
+  ├── country_id → countries.id
+  ├── state_id   → states.id
+  ├── city_id    → cities.id
+  └── has many → customer_products
+                    ├── product_id → products.id
+                    ├── active_subscription_plan_id → subscription_plans.id
+                    └── active_subscription_transaction_id → trn_customer_subscriptions.id
+
+products
+  ├── has many → product_modules
+  │                └── module_id → modules.id
+  │                     └── has many → submodules
+  │                                       └── has many → product_permissions
+  ├── has many → subscription_plans
+  └── has many → product_users
+
+subscription_plans
+  ├── product_id → products.id
+  ├── has many → subscription_plan_modules
+  ├── has many → subscription_plan_submodules
+  └── has many → subscription_plan_permission
+
+trn_customer_subscriptions (Header)
+  ├── customer_id → customers.id
+  ├── product_id  → products.id
+  ├── subscription_plan_id → subscription_plans.id
+  └── has many → trn_customer_subscriptions_details (Phases)
+
+customer_modules
+  ├── customer_id → customers.id
+  ├── product_id  → products.id
+  └── module_id   → modules.id
+
+customer_submodules
+  ├── customer_id  → customers.id
+  ├── product_id   → products.id
+  ├── module_id    → modules.id
+  └── submodule_id → submodules.id
+
+customer_permission
+  ├── customer_id   → customers.id
+  ├── product_id    → products.id
+  ├── module_id     → modules.id
+  ├── submodule_id  → submodules.id
+  └── permission_id → product_permissions.id
+
+product_users
+  ├── customer_id → customers.id
+  └── product_id  → products.id
 ```
 
 ---
@@ -24,105 +62,143 @@ users >── roles (via model_has_roles)
 ## Table Definitions
 
 ### `users`
-
-| Column | Type | Nullable | Default | Notes |
-|---|---|---|---|---|
-| id | BIGINT UNSIGNED | No | AUTO_INCREMENT | PK |
-| name | VARCHAR(255) | No | — | |
-| email | VARCHAR(255) | No | — | UNIQUE |
-| email_verified_at | TIMESTAMP | Yes | NULL | |
-| password | VARCHAR(255) | No | — | bcrypt hashed |
-| remember_token | VARCHAR(100) | Yes | NULL | |
-| last_login_at | TIMESTAMP | Yes | NULL | Updated on each login |
-| created_at | TIMESTAMP | No | CURRENT_TIMESTAMP | |
-| updated_at | TIMESTAMP | No | CURRENT_TIMESTAMP | |
-| deleted_at | TIMESTAMP | Yes | NULL | Soft deletes |
-
----
-
-### `personal_access_tokens` (Laravel Sanctum)
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | BIGINT UNSIGNED | No | PK |
-| tokenable_type | VARCHAR(255) | No | Polymorphic (App\Models\User) |
-| tokenable_id | BIGINT UNSIGNED | No | FK → users.id |
-| name | VARCHAR(255) | No | "access_token" or "refresh_token" |
-| token | VARCHAR(64) | No | SHA-256 hash, UNIQUE |
-| abilities | TEXT | Yes | JSON array of abilities |
-| last_used_at | TIMESTAMP | Yes | |
-| expires_at | TIMESTAMP | Yes | Set for access tokens |
-| created_at | TIMESTAMP | No | |
-| updated_at | TIMESTAMP | No | |
+| Column                | Type         | Nullable | Notes                      |
+|-----------------------|--------------|----------|----------------------------|
+| `id`                  | BIGINT PK    |          |                            |
+| `name`                | VARCHAR(255) |          |                            |
+| `email`               | VARCHAR(255) |          | Unique                     |
+| `password`            | VARCHAR(255) |          | Bcrypt                     |
+| `role_id`             | BIGINT FK    | ✅       | → `roles.id`               |
+| `phone`               | VARCHAR(15)  | ✅       |                            |
+| `status`              | TINYINT      |          | 1=Active, 0=Inactive        |
+| `profile_photo_path`  | VARCHAR      | ✅       |                            |
+| `country_id`, `state_id`, `city_id` | BIGINT FK | ✅ | Location        |
+| `email_verified_at`   | TIMESTAMP    | ✅       |                            |
+| `deleted_at`          | TIMESTAMP    | ✅       | Soft delete                |
+| `created_at`, `updated_at` | TIMESTAMP |       |                            |
 
 ---
 
-### `notifications` (Laravel built-in)
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | CHAR(36) | No | UUID, PK |
-| type | VARCHAR(255) | No | Notification class name |
-| notifiable_type | VARCHAR(255) | No | Polymorphic |
-| notifiable_id | BIGINT UNSIGNED | No | FK → users.id |
-| data | TEXT | No | JSON payload |
-| read_at | TIMESTAMP | Yes | NULL = unread |
-| created_at | TIMESTAMP | No | |
-| updated_at | TIMESTAMP | No | |
-
-**Index:** `(notifiable_type, notifiable_id)`
-
----
-
-### `activity_logs`
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | BIGINT UNSIGNED | No | PK |
-| user_id | BIGINT UNSIGNED | No | FK → users.id |
-| action | VARCHAR(255) | No | e.g. "created_report", "logged_in" |
-| entity_type | VARCHAR(255) | Yes | e.g. "App\Models\Report" |
-| entity_id | BIGINT UNSIGNED | Yes | Related record ID |
-| meta | JSON | Yes | Extra context |
-| created_at | TIMESTAMP | No | |
+### `customers`
+| Column          | Type         | Nullable | Notes             |
+|-----------------|--------------|----------|-------------------|
+| `id`            | BIGINT PK    |          |                   |
+| `company_name`  | VARCHAR(100) |          |                   |
+| `first_name`    | VARCHAR(100) |          |                   |
+| `last_name`     | VARCHAR(100) |          |                   |
+| `email`         | VARCHAR(100) |          | Unique            |
+| `phone`         | VARCHAR(13)  |          |                   |
+| `address_line1` | VARCHAR(150) |          |                   |
+| `address_line2` | VARCHAR(150) | ✅       |                   |
+| `country_id`    | BIGINT FK    |          | → `countries.id`  |
+| `state_id`      | BIGINT FK    |          | → `states.id`     |
+| `city_id`       | BIGINT FK    |          | → `cities.id`     |
+| `postal_code`   | INTEGER      |          |                   |
+| `status`        | TINYINT      |          | 1=Active, 0=Inactive |
+| `remark`        | VARCHAR(255) | ✅       |                   |
+| `created_by`, `updated_by` | BIGINT FK | ✅ | Audit        |
+| `created_ip`, `updated_ip` | VARCHAR   | ✅ | Audit        |
+| `created_source`, `updated_source` | VARCHAR | ✅ |         |
 
 ---
 
-### `reports`
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | CHAR(36) | No | UUID, PK |
-| user_id | BIGINT UNSIGNED | No | FK → users.id |
-| type | ENUM('revenue','activity','tasks') | No | |
-| format | ENUM('csv','xlsx','pdf') | No | |
-| status | ENUM('queued','processing','complete','failed') | No | Default: 'queued' |
-| date_from | DATE | No | |
-| date_to | DATE | No | |
-| file_path | VARCHAR(500) | Yes | S3 URL |
-| created_at | TIMESTAMP | No | |
-| updated_at | TIMESTAMP | No | |
+### `products`
+| Column        | Type         | Notes                                    |
+|---------------|--------------|------------------------------------------|
+| `name`        | VARCHAR(100) |                                          |
+| `code`        | VARCHAR(50)  | Unique short code                        |
+| `department`  | TINYINT      | 1=Laravel, 2=Desktop, 3=MVC, 4=Mobile   |
+| `database_type`| VARCHAR(50) | e.g. MySQL, MSSQL                        |
+| `language`    | VARCHAR(50)  | e.g. PHP, C#, Dart                       |
+| `description` | TEXT         | ✅                                       |
+| `status`      | TINYINT      | 1=Active, 0=Inactive                     |
 
 ---
 
-### `user_fcm_tokens`
-
-| Column | Type | Nullable | Notes |
-|---|---|---|---|
-| id | BIGINT UNSIGNED | No | PK |
-| user_id | BIGINT UNSIGNED | No | FK → users.id |
-| token | TEXT | No | Firebase FCM token |
-| device_type | ENUM('ios','android') | No | |
-| created_at | TIMESTAMP | No | |
-| updated_at | TIMESTAMP | No | |
-
-**Unique Index:** `(user_id, device_type)` — one token per user per platform
+### `subscription_plans`
+| Column             | Type     | Notes                                     |
+|--------------------|----------|-------------------------------------------|
+| `product_id`       | FK       | → `products.id`                           |
+| `name`             | VARCHAR  |                                           |
+| `code`             | VARCHAR  | Unique per plan                           |
+| `term`             | TINYINT  | 1=Monthly, 2=Yearly, 3=One-Time           |
+| `price`            | DECIMAL  | List price                                |
+| `sale_price`       | DECIMAL  | Used in billing                           |
+| `amc_price`        | DECIMAL  | AMC rate                                  |
+| `is_trial`         | BOOLEAN  |                                           |
+| `trial_day`        | INTEGER  |                                           |
+| `is_free_service`  | BOOLEAN  |                                           |
+| `free_service_day` | INTEGER  |                                           |
+| `is_amc`           | BOOLEAN  |                                           |
+| `status`           | TINYINT  |                                           |
 
 ---
 
-## Conventions
+### `trn_customer_subscriptions`
+| Column                  | Type    | Notes                        |
+|-------------------------|---------|------------------------------|
+| `customer_id`           | FK      | → `customers.id`             |
+| `product_id`            | FK      | → `products.id`              |
+| `subscription_plan_id`  | FK      | → `subscription_plans.id`    |
+| `status`                | TINYINT | 1=Active, 0=Deactivated       |
 
-1. All tables use soft deletes (`deleted_at`) where data retention is important.
-2. UUIDs used as PK for publicly exposed resources (notifications, reports) to prevent enumeration.
-3. All foreign keys have `ON DELETE CASCADE` unless soft deletes are in use.
-4. JSON columns (meta, data) use MySQL's native JSON type for query support.
+---
+
+### `trn_customer_subscriptions_details`
+| Column                     | Type         | Notes                                      |
+|----------------------------|--------------|--------------------------------------------|
+| `customer_subscription_id` | FK           | → `trn_customer_subscriptions.id`          |
+| `subscription_type`        | TINYINT      | 1=Trial, 2=Free Service, 3=AMC, 4=Normal  |
+| `transaction_no`           | VARCHAR(50)  | `SUB-{time}-{rand4}`                       |
+| `start_date`               | DATE         |                                            |
+| `end_date`                 | DATE         |                                            |
+| `receivable_amount`        | DECIMAL(10,2)|                                            |
+| `received_amount`          | DECIMAL(10,2)|                                            |
+| `payment_type`             | TINYINT      | ✅ nullable for Trial/Free                 |
+| `purchase_date`            | DATE         |                                            |
+
+---
+
+### `customer_products`
+| Column                             | Type    | Notes                                          |
+|------------------------------------|---------|------------------------------------------------|
+| `customer_id`                      | FK      | → `customers.id`                               |
+| `product_id`                       | FK      | → `products.id`                                |
+| `active_subscription_plan_id`      | FK      | → `subscription_plans.id`                      |
+| `active_subscription_transaction_id`| FK     | → `trn_customer_subscriptions.id`              |
+| `db_host`                          | VARCHAR | Client's DB server host                        |
+| `db_name`                          | VARCHAR | **Used as API lookup key**                     |
+| `db_user`                          | VARCHAR | Client DB username                             |
+| `db_password`                      | VARCHAR | Client DB password (stored plain — risk ⚠️)   |
+| `is_trial_expire`, `is_free_service_expire`, `is_amc_expire` | TINYINT | Phase flags |
+| `status`                           | TINYINT | 1=Active                                       |
+
+---
+
+### `product_users`
+| Column                       | Type         | Notes                                   |
+|------------------------------|--------------|-----------------------------------------|
+| `customer_id`                | FK           | → `customers.id`                        |
+| `product_id`                 | FK           | → `products.id`                         |
+| `first_name`, `last_name`    | VARCHAR      |                                         |
+| `email`                      | VARCHAR      |                                         |
+| `phone`                      | VARCHAR      |                                         |
+| `device_uuid`                | VARCHAR      | Hardware UUID                           |
+| `cpu_processor_id`           | VARCHAR      |                                         |
+| `motherboard_serial_number`  | VARCHAR      |                                         |
+| `primary_disk_serial_number` | VARCHAR      |                                         |
+| `device_fingerprint`         | VARCHAR      | **Primary lookup key for API**          |
+| `public_ip`, `local_ip`      | VARCHAR      | Updated on each API call                |
+| `status`                     | TINYINT      | 1=Active, 0=Disabled                    |
+| `created_source`, `updated_source` | VARCHAR| 'API' or 'WEB'                         |
+
+---
+
+## Key Business Indexes (Recommended)
+
+| Table                              | Suggested Index                              |
+|------------------------------------|----------------------------------------------|
+| `customer_products`                | `db_name` (unique) — API lookup              |
+| `product_users`                    | `device_fingerprint` + `customer_id` + `product_id` |
+| `trn_customer_subscriptions`       | `customer_id` + `product_id` + `status`      |
+| `trn_customer_subscriptions_details` | `customer_subscription_id` + `end_date`    |

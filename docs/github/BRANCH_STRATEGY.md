@@ -1,93 +1,126 @@
-# Branch Strategy — AXN-042 Axone Client Portal
+# Branch Strategy | Product Management System
 
 ---
 
-## Branch Naming Convention
+## 1. Branch Naming Convention
 
-All branches MUST follow this convention exactly. PRs with non-conforming branch names will be asked to rename.
+Branch names are tied to **TMS task numbers** for full traceability.
 
-| Branch Type | Pattern | Example |
-|---|---|---|
-| Main (Protected) | `main` | `main` — production-ready only |
-| Development | `develop` | `develop` — integration branch |
-| Feature | `feature/[module]-[task-name]` | `feature/auth-google-login` |
-| Bug Fix | `fix/[module]-[issue-description]` | `fix/dashboard-null-pointer` |
-| Hotfix | `hotfix/[brief-description]` | `hotfix/payment-timeout-crash` |
-| Release | `release/v[major].[minor].[patch]` | `release/v2.4.0` |
-| Chore / Config | `chore/[description]` | `chore/update-dependencies` |
-| Documentation | `docs/[module]-update` | `docs/auth-module-update` |
+### Format
+
+```
+{ProjectCode}{TaskNumber}{ProjectCode}-{type}-{short-description}
+```
+
+### Types
+
+| Type       | When to Use                   |
+|------------|-------------------------------|
+| *(none)*   | New feature / task            |
+| `bugfix`   | Bug fix                       |
+| `hotfix`   | Urgent production fix         |
+| `refactor` | Code restructure              |
+
+### Examples
+
+```
+V187V-implement-google-authenticator
+V125V-bugfix-user-token-not-refresh
+V200V-hotfix-payment-gateway-crash
+V215V-refactor-order-module
+```
+
+> ⚠️ **Rule:** One branch per TMS task. **Never commit directly to `main` or `develop`.** Always push via a branch and raise a PR.
 
 ---
 
-## Protected Branches
+## 2. Core GitHub Workflow
 
-| Branch | Who Can Push | Requires PR | Minimum Approvals |
-|---|---|---|---|
-| `main` | No one directly | Yes | 2 (Tech Lead + 1 Senior) |
-| `develop` | No one directly | Yes | 1 |
+Follow these steps **in order** for every task/feature. Every step maps to a TMS action.
 
----
-
-## Merge Flow
-
-```
-feature/* ──▶ develop ──▶ release/* ──▶ main
-fix/*     ──▶ develop
-hotfix/*  ──▶ main (and back-merge to develop)
-docs/*    ──▶ develop
-chore/*   ──▶ develop
-```
-
-**Hotfixes only:** When a critical production bug requires immediate fix:
-1. Branch from `main`: `git checkout -b hotfix/brief-description main`
-2. Fix and test locally.
-3. PR directly to `main` (requires 2 approvals).
-4. After merge to `main`, immediately merge back to `develop`.
+| #  | Action          | Description                                                      | Command / Tool                        |
+|----|-----------------|------------------------------------------------------------------|---------------------------------------|
+| 01 | Create Repo     | Create on GitHub with README + .gitignore                        | `github.com/new`                      |
+| 02 | Clone           | Clone repo to your machine                                       | `git clone <url>`                     |
+| 03 | Sync Main       | Always pull latest before branching                              | `git pull origin main`                |
+| 04 | Create Branch   | Create TMS-based branch name                                     | `git checkout -b V187V-feat`          |
+| 05 | Stage Changes   | Stage specific or all changed files                              | `git add .` OR `git add <file>`       |
+| 06 | Commit          | Write a meaningful Conventional Commit message                   | `git commit -m "feat: msg"`           |
+| 07 | Push Branch     | Push your branch to remote                                       | `git push origin V187V-feat`          |
+| 08 | Create PR       | Open PR on GitHub, fill template, assign reviewer                | GitHub UI → Compare & PR              |
+| 09 | PR Review       | Reviewer approves, requests changes, or comments                 | GitHub PR Review Panel                |
+| 10 | Merge PR        | Squash & Merge into develop/main, delete branch                  | GitHub UI → Merge PR                  |
+| 11 | Close TMS Task  | Add PR number + repo name to TMS task before closing             | TMS → Close Task                      |
 
 ---
 
-## Daily Workflow
+## 3. Commit Message Standard (Conventional Commits)
 
-```bash
-# Sync with develop before starting any work
-git checkout develop
-git pull origin develop
+Consistent commit messages make the project history readable, filterable, and auto-releasable.
 
-# Create your branch
-git checkout -b feature/auth-biometric-login
+### Format
 
-# Work and commit often
-git add .
-git commit -m "feat(auth): add biometric login screen in Flutter"
-
-# Keep your branch up to date
-git fetch origin
-git rebase origin/develop
-
-# Push and open PR
-git push origin feature/auth-biometric-login
 ```
+<type>(<scope>): <short summary>
+```
+
+### Types
+
+| Type       | When to Use                                          |
+|------------|------------------------------------------------------|
+| `feat`     | New feature                                          |
+| `fix`      | Bug fix                                              |
+| `hotfix`   | Urgent production fix                                |
+| `docs`     | Documentation only                                   |
+| `style`    | Formatting, missing semicolons, etc.                 |
+| `refactor` | Code change, no new feature or fix                   |
+| `perf`     | Performance improvement                              |
+| `test`     | Adding or updating tests                             |
+| `chore`    | Build process, dependency update, config             |
+| `ci`       | CI/CD related changes                                |
+
+### Examples
+
+```
+feat(auth): add Google Authenticator 2FA support
+fix(token): resolve user token not refreshing on expiry
+hotfix(payment): fix payment gateway crash on timeout
+docs(readme): update setup instructions for new devs
+chore(deps): upgrade Laravel from 10 to 11
+```
+
+### ✅ Good Commit
+```
+feat(order): add bulk order status update API endpoint
+```
+
+### ❌ Bad Commits Avoid These
+```
+"fixed stuff" / "changes" / "wip" / "done"
+```
+> These provide **zero context** in history.
 
 ---
 
-## Commit Message Convention (Conventional Commits)
+## 4. PR Labels Reference
 
-Format: `type(scope): short description`
+Apply labels to **every PR** for traceability and dashboard filtering.
 
-| Type | When to Use |
-|---|---|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `chore` | Dependency updates, config, tooling |
-| `refactor` | Code restructure, no behaviour change |
-| `test` | Adding or updating tests |
-| `hotfix` | Critical production fix |
-
-Examples:
-```
-feat(auth): add Google OAuth login
-fix(dashboard): resolve null pointer on revenue chart
-docs(reports): update API endpoint documentation
-chore: upgrade Laravel to v11.x
-```
+| Label              | Hex Color | When to Use                                            |
+|--------------------|-----------|--------------------------------------------------------|
+| 🟥 `bugfix`         | `#d73a4a` | Fixes a confirmed bug in the codebase                  |
+| 🟦 `feature`        | `#0e8a16` | Adds a new feature or user-facing functionality        |
+| 🟧 `enhancement`    | `#ff8c00` | Improves or extends an existing feature                |
+| 🟨 `documentation`  | `#ffd33d` | Updates or adds project documentation                  |
+| 🟪 `refactor`       | `#6f42c1` | Code restructure with no behavior change               |
+| 🟩 `performance`    | `#2cbe4e` | Improves speed, memory, or resource usage              |
+| 🟫 `wip`            | `#b60205` | Work in Progress not ready for review                  |
+| 🟦 `ready for review`| `#1d76db` | Code complete, ready for peer review                  |
+| 🟥 `hotfix`         | `#b60205` | Urgent production fix needs immediate merge            |
+| 🟪 `UI/UX`          | `#f4c2c2` | Changes to user interface or experience                |
+| 🟧 `test`           | `#fbca04` | Adds or updates test cases                             |
+| 🔴 `breaking change`| `#d93f0b` | Breaks backward compatibility communicate first        |
+| 🟫 `security`       | `#b60205` | Addresses a security vulnerability                     |
+| 🟩 `chore`          | `#d4c5f9` | Config, dependency, or cleanup tasks                   |
+| 🟩 `ready for merge`| `#2cbe4e` | PR reviewed and approved safe to merge                 |
+| 🟨 `dependencies`   | `#e4e669` | Updates or changes package dependencies                |

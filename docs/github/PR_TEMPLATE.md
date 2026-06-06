@@ -1,57 +1,53 @@
-## Pull Request
+# PR Template | Product Management System
 
-**Title format:** `type(module): brief description` — e.g. `feat(auth): add Google OAuth login`
-
----
-
-### Module
-<!-- Name of the module this PR belongs to -->
-e.g. Authentication
-
-### Task Reference
-<!-- GitHub Issue # or task ID -->
-Closes #
+The file below is saved as `.github/pull_request_template.md` in the repository root so **every PR automatically loads this structure** on GitHub.
 
 ---
 
-### What Changed
-<!-- Bullet list of exactly what was added / changed / removed -->
-- 
-- 
-- 
+## PR Assignments
 
-### Why It Changed
-<!-- Brief business or technical reason for this change -->
-
-
----
-
-### How to Test
-<!-- Step-by-step instructions for the reviewer to test the feature -->
-1. 
-2. 
-3. 
+| Field       | Who Sets It                       | Purpose                                                     |
+|-------------|-----------------------------------|-------------------------------------------------------------|
+| **Assignee**  | Developer who wrote the code    | Ownership they handle all requested changes               |
+| **Reviewer**  | Team Lead / Senior Dev          | Quality gate must approve before merge                    |
+| **Label**     | Developer (or auto via Actions) | Categorize PR for filtering and reporting                   |
+| **Milestone** | Team Lead                       | Link PR to a sprint or release milestone                    |
 
 ---
 
-### Checklist
+## Label Quick Reference
 
-- [ ] `/docs/modules/[module].md` has been updated
-- [ ] Test case table in `/docs/modules/tests/[module]_tests.md` updated
-- [ ] No hardcoded credentials, API keys, or secrets in the code
-- [ ] All new API routes are documented in `/docs/api/endpoints.md`
-- [ ] Database migrations have a working `down()` method
-- [ ] No `console.log`, `dd()`, or `var_dump()` left in code
-- [ ] Self-tested: all P1 & P2 test cases pass
-- [ ] Screenshots provided (required for any UI/screen change)
+See [BRANCH_STRATEGY.md](./BRANCH_STRATEGY.md#4-pr-labels-reference) for the full label list with hex colors.
 
-### Breaking Changes
-<!-- Yes / No. If Yes, describe what breaks and migration steps required. -->
-No
+---
 
-### Screenshots
-<!-- Required for any UI or admin panel change. Drag and drop here. -->
+## Template (`.github/pull_request_template.md`)
 
-### Reviewer
-<!-- Tag the assigned reviewer -->
-@
+```markdown
+## Summary
+What does this PR do? (1-2 sentences)
+
+## TMS Task
+Task #: ____   Repository: ____
+
+## Type of Change
+- [ ] New Feature
+- [ ] Bug Fix
+- [ ] Hotfix
+- [ ] Refactor
+- [ ] Documentation
+
+## Testing Done
+- [ ] Tested locally
+- [ ] Unit tests pass
+- [ ] No console errors
+
+## Screenshots (if UI change)
+(Paste before/after screenshots here)
+
+## Checklist
+- [ ] Branch is up-to-date with develop/main
+- [ ] Code reviewed by self
+- [ ] No debug code / console.log left
+- [ ] Dependent changes merged upstream
+```

@@ -1,143 +1,123 @@
-# Module: Reports (RPT)
+# Module: Reports
 
 ---
 
-## 1. Module Identity
+## 1.0 Module Identity
 
-| Field | Value |
-|---|---|
-| **Module Name** | Reports Module |
-| **Module ID** | RPT |
-| **Platform** | Laravel API + Flutter |
-| **Status** | In Progress |
-| **Assigned Developer** | Arjun Patel |
-| **Creation Date** | 2024-04-01 |
-| **Last Updated** | 2024-06-15 |
-
----
-
-## 2. Purpose & Scope
-
-The Reports module enables users to generate, view, filter, and export data reports across various business metrics (revenue, user activity, task completion). Reports are generated asynchronously as background jobs and delivered via download link or in-app notification. Does NOT cover dashboard summary stats (see dashboard.md) or invoice generation (see payments.md).
+| Field            | Details                              |
+|------------------|--------------------------------------|
+| **Module Name**  | Reports                              |
+| **Module Code**  | RPT                                  |
+| **Platform**     | Laravel + React (Inertia)            |
+| **Status**       | Active                               |
+| **Developer**    | *(Assign)*                           |
+| **Created Date** | 2025-12-24                           |
 
 ---
 
-## 3. User Roles & Permissions
+## 2.0 Purpose & Scope
 
-| Role | Generate Reports | View Own Reports | View All Reports | Export Reports | Schedule Reports |
-|---|---|---|---|---|---|
-| Super Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Manager | ✅ | ✅ | ✅ (team) | ✅ | ❌ |
-| User | ✅ | ✅ | ❌ | ✅ (own) | ❌ |
+Provides operational reporting for internal admin users. Currently includes two report views: (1) **User Report** shows all registered devices (product_users) with filtering by product and customer, and (2) **Product Customer Report** shows all customer-product subscription relationships with drill-down details including device list and subscription history. This module does **not** generate PDF/Excel exports (planned).
 
 ---
 
-## 4. Feature List
+## 3.0 User Roles & Permissions
 
-- [DONE] Generate Revenue Report (by date range, monthly/quarterly/annual)
-- [DONE] Generate User Activity Report
-- [DONE] Generate Task Completion Report
-- [DONE] Export as CSV
-- [DONE] Export as XLSX (paginated for large datasets, fixes #201)
-- [IN PROGRESS] Export as PDF
-- [IN PROGRESS] Report scheduling (daily/weekly/monthly auto-generation)
-- [PLANNED] Custom report builder (select columns, filters)
-- [PLANNED] Report sharing (send to email)
+| Action               | Admin | Manager | QA |
+|----------------------|-------|---------|-----|
+| View User Report      | ✅    | ✅      | ✅  |
+| Toggle Device Status  | ✅    | ❌      | ❌  |
+| View Product Customer Report | ✅ | ✅   | ✅  |
+| View Detail Modal     | ✅    | ✅      | ✅  |
 
 ---
 
-## 5. API Endpoints
+## 4.0 Feature List
 
-### POST /api/v1/reports/generate
-
-| Field | Value |
-|---|---|
-| **Auth Required** | Yes |
-| **Description** | Queues a report generation job. Returns a job ID to poll for status. |
-| **Request Body** | `{ "type": "revenue|activity|tasks", "date_from": "YYYY-MM-DD", "date_to": "YYYY-MM-DD", "format": "csv|xlsx|pdf" }` |
-| **Success (202)** | `{ "job_id": "uuid", "status": "queued", "message": "Report is being generated." }` |
-
-### GET /api/v1/reports/status/{job_id}
-
-| Field | Value |
-|---|---|
-| **Auth Required** | Yes |
-| **Description** | Polls the status of a report generation job |
-| **Success (200)** | `{ "job_id": "uuid", "status": "queued|processing|complete|failed", "download_url": "string|null" }` |
-
-### GET /api/v1/reports
-
-| Field | Value |
-|---|---|
-| **Auth Required** | Yes |
-| **Description** | Lists all previously generated reports for the authenticated user |
-| **Success (200)** | `{ "data": [ { "id": "uuid", "type": "string", "format": "string", "status": "string", "download_url": "string", "created_at": "ISO8601" } ] }` |
+- [DONE] User Report list all registered devices (product_users), filter by product + customer, sort by name/email/customer/product/status
+- [DONE] Toggle device active/inactive status from User Report
+- [DONE] Product Customer Report list all customer subscriptions with device count + plan info
+- [DONE] Product Customer Report Detail (AJAX modal) shows device list + subscription history + current subscription config
+- [PLANNED] Export to Excel/CSV
+- [PLANNED] Date range filtering
+- [PLANNED] Subscription expiry alert report
 
 ---
 
-## 6. Database Tables
+## 5.0 API Endpoints
 
-| Table | Key Columns | Notes |
-|---|---|---|
-| `reports` | id (UUID), user_id, type, format, status, file_path, created_at | Report job records |
-| `jobs` | id, queue, payload, attempts, created_at | Laravel jobs queue |
-| `failed_jobs` | id, uuid, payload, exception, failed_at | Failed job log |
-
----
-
-## 7. Business Logic
-
-### Report Generation Flow
-1. User submits `POST /reports/generate` with type, date range, format.
-2. Controller creates a `reports` record with `status = queued`.
-3. `GenerateReportJob` is dispatched to the `reports` queue.
-4. Job queries the relevant data, chunks the output (1000 rows per chunk for large datasets).
-5. Writes output file to AWS S3 under `reports/{user_id}/{job_id}.{format}`.
-6. Updates `reports` record: `status = complete`, `file_path = s3_url`.
-7. Fires `ReportReady` event → Notifications module sends in-app + push notification.
-
-**Large Dataset Handling (> 10,000 rows):**
-- Export is chunked using Laravel's `chunk()` method.
-- XLSX export uses OpenSpout for memory-efficient streaming.
-- Max export size: 100,000 rows. Beyond this, user is prompted to narrow date range.
+| Method | Route                                              | Auth | Controller                              | Purpose                           |
+|--------|----------------------------------------------------|------|-----------------------------------------|-----------------------------------|
+| GET    | `/reports/user-report`                             | ✅   | `UserReportController@index`            | User/Device report (paginated)    |
+| POST   | `/reports/user-report/{productUser}/toggle-status` | ✅   | `UserReportController@toggleStatus`     | Enable/disable a device           |
+| GET    | `/reports/product-customer-report`                 | ✅   | `ProductCustomerReportController@index` | Customer-product subscriptions    |
+| GET    | `/reports/product-customer-report/details`         | ✅   | `ProductCustomerReportController@details` | AJAX: drill-down details        |
 
 ---
 
-## 8. Mobile Screens (Flutter)
+### GET `/reports/product-customer-report/details`
 
-| Screen Name | Route | Data Source | Key Interactions |
-|---|---|---|---|
-| Reports List | `/reports` | GET /api/v1/reports | Tap to download, pull-to-refresh |
-| Generate Report | `/reports/generate` | POST /api/v1/reports/generate | Select type, date range, format; submit |
-| Report Status | `/reports/status` | GET /api/v1/reports/status/{id} | Auto-polling every 5s while status = processing |
-
----
-
-## 9. Error Handling
-
-| Error | HTTP Code | User-Facing Message |
-|---|---|---|
-| Invalid date range | 422 | "Date range cannot exceed 2 years." |
-| Report > 100k rows | 422 | "Dataset too large. Please narrow your date range." |
-| Job failed | 500 | "Report generation failed. Please try again." |
-| Download URL expired | 403 | "Download link expired. Please regenerate the report." |
+| Field         | Value                                   |
+|---------------|-----------------------------------------|
+| **Auth Required** | Yes (session)                       |
+| **Request Params** | `customer_id` (required), `product_id` (required) |
+| **Response**  | JSON with `customer`, `product_users`, `subscription_history`, `current_subscription` |
 
 ---
 
-## 10. GitHub References
+## 6.0 Database Tables
 
-- Branch pattern: `feature/reports-[task]`, `fix/reports-[issue]`
-- Related PRs: #95 (async generation), #110 (XLSX pagination fix)
-- Open Issues: #201 (Large dataset crash — RESOLVED in v2.3.1)
-- Milestone: v2.5.0 (PDF export, Report Scheduling)
+| Table                              | Used For                                   |
+|------------------------------------|--------------------------------------------|
+| `product_users`                    | Device registry User Report source       |
+| `customer_products`                | Customer-product links PC Report source  |
+| `trn_customer_subscriptions_details`| Subscription history in detail modal      |
+| `subscription_plans`               | Plan name + price in reports               |
+| `customers`                        | Customer name/company in both reports      |
+| `products`                         | Product filter dropdown                    |
 
 ---
 
-## 11. Change Log
+## 7.0 Business Logic
 
-| Date | Developer | Change |
-|---|---|---|
-| 2024-06-15 | Arjun Patel | Added XLSX paginated export (fixes #201) |
-| 2024-05-20 | Arjun Patel | Added CSV export, S3 file storage |
-| 2024-04-01 | Arjun Patel | Initial module: async report generation, jobs queue |
+### User Report
+1. Loads `product_users` with eager-loaded `product`, `customer`, `creator`, `updater`.
+2. Filters by `product_id` and/or `customer_id` if passed as query params.
+3. Customer dropdown is dynamically filtered based on selected product (only customers who have a `customer_products` record for that product).
+4. Sorting uses `join` clauses for relational columns (customer name, product name).
+
+### Product Customer Report
+1. Loads `customer_products` with related plan and subscription.
+2. Adds a subquery to count registered devices per customer-product pair.
+3. Supports filter by product and search by customer name/email.
+4. Detail modal fires `GET /reports/product-customer-report/details?customer_id=X&product_id=Y` and renders:
+   - Customer info
+   - All devices registered (from `product_users`)
+   - Full subscription timeline (from `trn_customer_subscriptions_details`)
+   - Current active plan config (from `customer_products`)
+
+---
+
+## 9.0 Error Handling
+
+| Scenario                | Response                          |
+|-------------------------|-----------------------------------|
+| Invalid customer_id/product_id in details | 422 Validation error |
+| No data found           | Empty collections returned (no 404) |
+
+---
+
+## 10.0 GitHub References
+
+- **Branch Pattern**: `feature/rpt-[task]`, `fix/rpt-[issue]`
+- **Controllers**: `UserReportController.php`, `ProductCustomerReportController.php`
+- **Routes**: `routes/web.php` lines 63–67
+
+---
+
+## 11.0 Change Log
+
+| Date       | Developer | Change                                           |
+|------------|-----------|--------------------------------------------------|
+| 2025-12-24 | —         | User Report + Product Customer Report created    |
+| 2025-12-24 | —         | Device toggle-status from User Report added      |

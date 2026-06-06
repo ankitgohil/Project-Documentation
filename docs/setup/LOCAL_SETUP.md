@@ -1,141 +1,141 @@
-# Local Setup Guide — AXN-042 Axone Client Portal
+# Local Development Setup Guide
 
-Follow every step in order. Do not skip steps.
+Step-by-step instructions to set up this project on your local machine.
 
 ---
 
 ## Prerequisites
 
-| Tool | Version | Install |
-|---|---|---|
-| PHP | 8.2+ | [php.net](https://php.net) or Homebrew |
-| Composer | 2.x | [getcomposer.org](https://getcomposer.org) |
-| MySQL | 8.0+ | [mysql.com](https://dev.mysql.com) or DBngin |
-| Node.js | 18+ | [nodejs.org](https://nodejs.org) |
-| Redis | 7.x | Homebrew or Docker |
-| Flutter | 3.19+ | [flutter.dev](https://flutter.dev) |
-| Git | 2.x | Pre-installed on macOS |
+Ensure the following are installed before starting:
+
+| Tool         | Required Version | Install Guide                            |
+|--------------|-----------------|------------------------------------------|
+| PHP          | 8.2+            | [php.net](https://php.net/downloads.php) |
+| Composer     | 2.x             | [getcomposer.org](https://getcomposer.org) |
+| Node.js      | 20.x            | [nodejs.org](https://nodejs.org)         |
+| MySQL/MariaDB| 8.0+ / 10.5+    | Or use WAMP/XAMPP/Laragon on Windows     |
+| Git          | Any             | [git-scm.com](https://git-scm.com)       |
 
 ---
 
-## Step 1 — Clone the Repository
+## Setup Steps
 
+### 1. Clone the Repository
 ```bash
-git clone git@github.com:axoneinfotech/axn-client-portal.git
-cd axn-client-portal
+git clone https://github.com/Axone-Infotech/Product-management.git
+cd Product-management
 ```
 
----
-
-## Step 2 — Install PHP Dependencies
-
+### 2. Install PHP Dependencies
 ```bash
 composer install
 ```
 
----
+### 3. Install Node Dependencies
+```bash
+npm install
+```
 
-## Step 3 — Configure Environment
-
+### 4. Configure Environment
 ```bash
 cp .env.example .env
+```
+
+Open `.env` and update:
+```ini
+APP_NAME="Product Management"
+APP_ENV=local
+APP_URL=http://localhost/Product-management/public
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=product_management
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+> See [ENV_VARIABLES.md](./ENV_VARIABLES.md) for all available environment variables.
+
+### 5. Generate Application Key
+```bash
 php artisan key:generate
 ```
 
-Open `.env` and fill in values from the Bitwarden vault (ask Tech Lead for access):
-
-```env
-DB_DATABASE=axn_portal
-DB_USERNAME=your_db_user
-DB_PASSWORD=your_db_password
-
-REDIS_HOST=127.0.0.1
-REDIS_PORT=6379
-
-MAIL_MAILER=mailgun
-MAILGUN_DOMAIN=axoneinfotech.com
-MAILGUN_SECRET=        # from Bitwarden
-
-AWS_ACCESS_KEY_ID=     # from Bitwarden
-AWS_SECRET_ACCESS_KEY= # from Bitwarden
-AWS_DEFAULT_REGION=ap-south-1
-AWS_BUCKET=axn-portal-uploads-staging
-
-FIREBASE_SERVER_KEY=   # from Bitwarden
-GOOGLE_CLIENT_ID=      # from Bitwarden
-GOOGLE_CLIENT_SECRET=  # from Bitwarden
+### 6. Create Database
+In MySQL:
+```sql
+CREATE DATABASE product_management CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
----
-
-## Step 4 — Set Up Database
-
+### 7. Run Migrations
 ```bash
-mysql -u root -p -e "CREATE DATABASE axn_portal CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 php artisan migrate
+```
+
+### 8. (Optional) Seed Test Data
+```bash
 php artisan db:seed
 ```
+> Note: Check if seeders exist before running.
 
-The seeder creates:
-- 1 Super Admin user: `admin@axoneinfotech.com` / `Admin@1234`
-- Sample roles and permissions
-- 10 sample users
+### 9. Build Frontend Assets
+For development (with hot reload):
+```bash
+npm run dev
+```
 
----
+For production build:
+```bash
+npm run build
+```
 
-## Step 5 — Start Services
-
-Open 3 terminal tabs:
-
-**Tab 1 — Laravel Backend:**
+### 10. Start the Development Server
 ```bash
 php artisan serve
-# Runs at http://localhost:8000
 ```
-
-**Tab 2 — Queue Worker:**
-```bash
-php artisan queue:work --queue=reports,default
-```
-
-**Tab 3 — Redis (if not running as service):**
-```bash
-redis-server
-```
+Then open: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ---
 
-## Step 6 — Mobile Setup (Flutter)
+## Using WAMP64 (Windows)
 
-```bash
-cd mobile/
-flutter pub get
-flutter run
-```
+If using WAMP64 (as per the current dev environment at `c:\wamp64\www\Product-management`):
 
-> Make sure `.env` in the mobile folder has `API_BASE_URL=http://localhost:8000/api/v1`
-
----
-
-## Verify Installation
-
-Visit [http://localhost:8000/api/v1/health](http://localhost:8000/api/v1/health) — should return `{"status": "ok"}`.
-
-Try logging in:
-```bash
-curl -X POST http://localhost:8000/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@axoneinfotech.com","password":"Admin@1234"}'
-```
+1. Place the project in `C:\wamp64\www\Product-management\`
+2. Start WAMP64 (Apache + MySQL)
+3. Access via: `http://localhost/Product-management/public/`
+4. Run `npm run dev` in a separate terminal for asset compilation
+5. No need for `php artisan serve` Apache handles PHP
 
 ---
 
-## Common Issues
+## All-in-One Dev Command
 
-| Problem | Fix |
-|---|---|
-| `php artisan migrate` fails | Check `DB_*` values in `.env`. Ensure MySQL is running. |
-| `SQLSTATE[HY000] [2002] No such file` | MySQL socket issue — use `DB_HOST=127.0.0.1` not `localhost` |
-| Redis connection refused | Start Redis: `redis-server` or `brew services start redis` |
-| Composer memory error | `COMPOSER_MEMORY_LIMIT=-1 composer install` |
-| Flutter `pub get` fails | Run `flutter doctor` and fix any issues first |
+The `composer.json` includes a `dev` script that starts all services together:
+```bash
+composer run dev
+```
+This runs concurrently:
+- `php artisan serve`
+- `php artisan queue:listen`
+- `php artisan pail --timeout=0` (real-time logs)
+- `npm run dev`
+
+---
+
+## Quick Reference
+
+```bash
+# Fresh setup shortcut (copies .env, generates key, migrates, builds)
+composer run setup
+
+# Start dev environment
+composer run dev
+
+# Run tests
+composer run test
+
+# Clear all caches
+php artisan optimize:clear
+```

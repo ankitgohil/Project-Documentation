@@ -1,49 +1,40 @@
-# Test Run Log — AXN-042 Axone Client Portal
+# Test Run Log | Product Management System
 
-Sprint-wise test execution summary. Updated by QA at the end of each sprint.
-
----
-
-## Sprint 8 — June 10–21, 2024
-
-**Sprint Goal:** Notifications module MVP, Dashboard Revenue Chart, Auth Refresh Token Rotation
-
-| Module | Total TCs | PASS | FAIL | PENDING | Pass Rate |
-|---|---|---|---|---|---|
-| Authentication | 14 | 12 | 1 | 1 | 85.7% |
-| Dashboard | 7 | 7 | 0 | 0 | 100% |
-| Notifications | 5 | 3 | 0 | 2 | 60% (2 blocked on FCM config) |
-| **Sprint Total** | **26** | **22** | **1** | **3** | **84.6%** |
-
-**Open P1 FAILs:**
-- AXN042-AUTH-TC-006 → #187 (Expired JWT not redirecting on Flutter). Carried to Sprint 9.
-
-**Blocked:**
-- NOTIF TCs 4–5: FCM staging config not yet set up. Awaiting DevOps.
+This file tracks sprint-wise test execution summaries as per the Axone Infotech Test Documentation Policy.
 
 ---
 
-## Sprint 7 — May 27–June 7, 2024
+## Log Format
 
-**Sprint Goal:** Dashboard widget expansion, Reports CSV/XLSX export fix
-
-| Module | Total TCs | PASS | FAIL | PENDING | Pass Rate |
-|---|---|---|---|---|---|
-| Dashboard | 5 | 5 | 0 | 0 | 100% |
-| Reports | 8 | 7 | 1 | 0 | 87.5% |
-| **Sprint Total** | **13** | **12** | **1** | **0** | **92.3%** |
-
-**FAILs Resolved This Sprint:**
-- AXN042-RPT-TC-005 (XLSX crash > 50k rows) → Fixed #201 in v2.3.1
+| Sprint | Date Range | Modules Tested | Total TCs | Pass ✅ | Fail ❌ | Blocked ⚠️ | Pending 🔄 | Tester | Notes |
+|--------|------------|----------------|-----------|---------|---------|------------|-----------|--------|-------|
 
 ---
 
-## Sprint 6 — May 13–24, 2024
+## Sprint 1 | Initial Setup (December 2025)
 
-**Sprint Goal:** Google OAuth, Role-based permissions, Admin Panel basics
+| Sprint | Date Range | Modules Tested | Total TCs | Pass ✅ | Fail ❌ | Blocked ⚠️ | Pending 🔄 | Tester | Notes |
+|--------|------------|----------------|-----------|---------|---------|------------|-----------|--------|-------|
+| Sprint 1 | 2025-12-13 to 2025-12-24 | Auth, Subscription API | 27 | 0 | 0 | 0 | 27 | — | Initial test case stubs created — execution pending |
 
-| Module | Total TCs | PASS | FAIL | PENDING | Pass Rate |
-|---|---|---|---|---|---|
-| Authentication | 9 | 9 | 0 | 0 | 100% |
-| Admin | 6 | 5 | 0 | 1 | 83.3% |
-| **Sprint Total** | **15** | **14** | **0** | **1** | **93.3%** |
+---
+
+## Instructions
+
+1. After each sprint's QA cycle, add a new row to this table.
+2. Link to individual module test files for detailed results.
+3. All **P1 FAIL** items must be resolved before the sprint can close.
+4. Generate this summary and share with PM at the end of each sprint.
+
+---
+
+## Module Test Files Index
+
+| Module          | Test File                                                 |
+|-----------------|-----------------------------------------------------------|
+| Authentication  | [auth_tests.md](./auth_tests.md)                         |
+| License API     | [license_api_tests.md](./license_api_tests.md)           |
+| Subscriptions   | [subscriptions_tests.md](./subscriptions_tests.md)       |
+| Customers       | *(create: customers_tests.md)*                           |
+| Products        | *(create: products_tests.md)*                            |
+| Reports         | *(create: reports_tests.md)*                             |
