@@ -1,37 +1,68 @@
-# CHANGELOG — AXN-042 Axone Client Portal
+# Changelog | Product Management System
 
-All notable changes to this project are documented here.
-Format: `[VERSION] YYYY-MM-DD — Developer — Description`
+All notable changes to this project are documented here in reverse chronological order.
 
 ---
 
-## [v2.4.0] — 2024-06-20 — Rahul Mehta
-- Added Notifications module (in-app + push via FCM)
-- Upgraded Laravel to v11.x
-- Refactored Auth middleware to support refresh token rotation
-- Fixed: Expired JWT not redirecting on mobile (#187) — *PARTIAL FIX, see #187*
+## [v1.0.0] | 2025-12-24 | Ankit Gohil
 
-## [v2.3.1] — 2024-06-10 — Arjun Patel
-- Fixed: Reports export crash for large datasets (paginated export added) (#201)
-- Added: CSV export option for all report types
-- Updated: endpoints.md with new `/api/v1/reports/export` route
+### Added
+- **License Verification API** `POST /api/identify-customer` for external device authentication and hierarchical access rights delivery.
+- **Product Users (Device Tracking)** `product_users` table to register and track hardware-fingerprinted devices.
+- **Personal Access Tokens** Added `personal_access_tokens` table (Sanctum).
 
-## [v2.3.0] — 2024-05-28 — Priya Sharma
-- Dashboard: Added Revenue Chart widget (Recharts, monthly breakdown)
-- Dashboard: Added Quick Stats cards (Active Users, Pending Tasks, Revenue MTD)
-- Mobile: New Dashboard home screen with pull-to-refresh
+---
 
-## [v2.2.0] — 2024-05-10 — Rahul Mehta
-- Integrated Razorpay payment gateway (Invoice module, Planned → In Progress)
-- Added spatie/permission role management
-- Admin Panel: User role assignment UI
+## [v0.9.0] | 2025-12-20 | Ankit Gohil
 
-## [v2.1.0] — 2024-04-15 — Priya Sharma
-- Authentication: Added Google OAuth login
-- Authentication: Implemented rate limiting (5 attempts/min per IP)
-- Mobile: Login screen redesign
+### Added
+- **Subscription Management Module** Full CRUD for assigning customers to subscription plans.
+- **Subscription Timeline Engine** Auto-generates Trial → Free Service → AMC/Normal date chain from plan configuration.
+- **Customer Access Rights Sync** On subscription create/update, the system syncs allowed modules/submodules/permissions into customer-specific tables.
+- **Customer Products Table** Links customer to product with DB credentials and active plan tracking.
+- **Subscription Details Table** Line-level subscription phase records (trn_customer_subscriptions_details).
 
-## [v2.0.0] — 2024-03-01 — Rahul Mehta
-- Initial production release
-- Modules: Auth, Dashboard, Admin Panel
-- Laravel 10 baseline, Flutter 3.x baseline
+---
+
+## [v0.8.0] | 2025-12-19 | Ankit Gohil
+
+### Added
+- **Subscription Plan Mapping** Pivot tables to associate Plans with Modules, Submodules, and Permissions.
+
+---
+
+## [v0.7.0] | 2025-12-17 | Ankit Gohil
+
+### Added
+- **Customer Management Module** Full CRUD for customers with status toggle and location linkage.
+- **Submodules Module** CRUD + bulk status update + per-product module relationships.
+- **Product Permissions Module** CRUD for granular permissions under submodules.
+
+---
+
+## [v0.6.0] | 2025-12-16 | Ankit Gohil
+
+### Added
+- **Product Catalog Module** Full CRUD for products with department classification.
+- **Subscription Plans Module** Full CRUD with term/trial/AMC configuration.
+- **Location Masters** Countries, States, Cities tables and controllers.
+- **Location Columns on Users** Added `country_id`, `state_id`, `city_id` to `users`.
+
+---
+
+## [v0.5.0] | 2025-12-13 | Ankit Gohil
+
+### Added
+- **Roles & Permissions Tables** `roles` and `permissions` tables with pivot.
+- **Extended User Fields** Added `role_id`, `phone`, `status`, `profile_photo_path` to `users`.
+- **Soft Deletes** Added `deleted_at` to `users` and `roles`.
+
+---
+
+## [v0.1.0] | 2025-12-13 (Initial Setup) | Ankit Gohil
+
+### Added
+- Laravel 12 project scaffold.
+- Breeze authentication (React + Inertia stack).
+- Base users, cache, and jobs tables.
+- Vite + Tailwind CSS configuration.

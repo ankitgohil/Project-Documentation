@@ -1,92 +1,84 @@
-# Environment Variables Reference — AXN-042
+# Environment Variables Reference
 
-> ⚠️ This file lists variable NAMES and descriptions only. NEVER commit actual values here.
-> All actual values are stored in the team Bitwarden vault under "AXN-042 Environment".
+All `.env` keys used by this project. **Never store actual secret values in this file or in the repository.**
 
----
-
-## Application
-
-| Variable | Required | Description |
-|---|---|---|
-| `APP_NAME` | Yes | Application name (e.g. "Axone Portal") |
-| `APP_ENV` | Yes | `local` / `staging` / `production` |
-| `APP_KEY` | Yes | Laravel app encryption key. Generate: `php artisan key:generate` |
-| `APP_DEBUG` | Yes | `true` for local/staging, `false` for production |
-| `APP_URL` | Yes | Full base URL of the app |
+Actual values are managed via the `.env` file (not committed to Git) or via the server's environment configuration.
 
 ---
 
-## Database
+## Application Settings
 
-| Variable | Required | Description |
-|---|---|---|
-| `DB_CONNECTION` | Yes | Always `mysql` |
-| `DB_HOST` | Yes | MySQL host (use `127.0.0.1` locally) |
-| `DB_PORT` | Yes | MySQL port (default `3306`) |
-| `DB_DATABASE` | Yes | Database name |
-| `DB_USERNAME` | Yes | MySQL username |
-| `DB_PASSWORD` | Yes | MySQL password — from Bitwarden |
-
----
-
-## Redis / Cache / Queue
-
-| Variable | Required | Description |
-|---|---|---|
-| `REDIS_HOST` | Yes | Redis host |
-| `REDIS_PASSWORD` | No | Redis password (null for local) |
-| `REDIS_PORT` | Yes | Default `6379` |
-| `CACHE_DRIVER` | Yes | `redis` for staging/prod, `array` for local testing |
-| `QUEUE_CONNECTION` | Yes | `redis` for staging/prod, `sync` for local testing |
-| `SESSION_DRIVER` | Yes | `redis` |
+| Variable        | Type    | Required | Description                              | Example                      |
+|-----------------|---------|----------|------------------------------------------|------------------------------|
+| `APP_NAME`      | String  | ✅       | Application display name                 | `Product Management`         |
+| `APP_ENV`       | String  | ✅       | Environment: `local`, `staging`, `production` | `local`               |
+| `APP_KEY`       | String  | ✅       | Laravel encryption key (auto-generated)  | `base64:...`                 |
+| `APP_DEBUG`     | Boolean | ✅       | Show debug errors. **Must be `false` in production** | `true`   |
+| `APP_URL`       | URL     | ✅       | Base URL of the application              | `http://localhost`           |
+| `APP_TIMEZONE`  | String  | ❌       | Server timezone                          | `Asia/Kolkata`               |
+| `APP_LOCALE`    | String  | ❌       | Default locale                           | `en`                         |
 
 ---
 
-## Email (Mailgun)
+## Database Settings
 
-| Variable | Required | Description |
-|---|---|---|
-| `MAIL_MAILER` | Yes | `mailgun` |
-| `MAILGUN_DOMAIN` | Yes | Mailgun sending domain — from Bitwarden |
-| `MAILGUN_SECRET` | Yes | Mailgun API key — from Bitwarden |
-| `MAIL_FROM_ADDRESS` | Yes | Default sender email |
-| `MAIL_FROM_NAME` | Yes | Default sender name |
-
----
-
-## AWS S3 (File Storage)
-
-| Variable | Required | Description |
-|---|---|---|
-| `AWS_ACCESS_KEY_ID` | Yes | AWS IAM access key — from Bitwarden |
-| `AWS_SECRET_ACCESS_KEY` | Yes | AWS IAM secret — from Bitwarden |
-| `AWS_DEFAULT_REGION` | Yes | e.g. `ap-south-1` |
-| `AWS_BUCKET` | Yes | S3 bucket name (different per environment) |
+| Variable      | Type    | Required | Description               | Example          |
+|---------------|---------|----------|---------------------------|------------------|
+| `DB_CONNECTION`| String | ✅       | DB driver: `mysql`        | `mysql`          |
+| `DB_HOST`     | String  | ✅       | Database server host       | `127.0.0.1`      |
+| `DB_PORT`     | Integer | ✅       | Database port              | `3306`           |
+| `DB_DATABASE` | String  | ✅       | Database name              | `product_management` |
+| `DB_USERNAME` | String  | ✅       | Database user              | `root`           |
+| `DB_PASSWORD` | String  | ✅       | Database password          | *(secret)*       |
 
 ---
 
-## Firebase (Push Notifications)
+## Cache & Session Settings
 
-| Variable | Required | Description |
-|---|---|---|
-| `FIREBASE_SERVER_KEY` | Yes | Firebase Cloud Messaging server key — from Bitwarden |
-
----
-
-## Google OAuth
-
-| Variable | Required | Description |
-|---|---|---|
-| `GOOGLE_CLIENT_ID` | Yes | Google OAuth Client ID — from Bitwarden |
-| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth Client Secret — from Bitwarden |
-| `GOOGLE_REDIRECT_URI` | Yes | OAuth callback URL (must match Google Console) |
+| Variable         | Type   | Required | Description                                | Example      |
+|------------------|--------|----------|--------------------------------------------|--------------|
+| `CACHE_STORE`    | String | ❌       | Cache driver: `file`, `redis`, `database`  | `database`   |
+| `SESSION_DRIVER` | String | ❌       | Session driver: `file`, `database`, `redis`| `database`   |
+| `SESSION_LIFETIME`| Integer| ❌      | Session lifetime in minutes                | `120`        |
 
 ---
 
-## Razorpay (Payments — Planned)
+## Mail Settings
 
-| Variable | Required | Description |
-|---|---|---|
-| `RAZORPAY_KEY` | Planned | Razorpay API Key — from Bitwarden |
-| `RAZORPAY_SECRET` | Planned | Razorpay API Secret — from Bitwarden |
+| Variable       | Type    | Required | Description                    | Example             |
+|----------------|---------|----------|--------------------------------|---------------------|
+| `MAIL_MAILER`  | String  | ✅       | Mailer driver: `smtp`, `log`   | `smtp`              |
+| `MAIL_HOST`    | String  | ✅       | SMTP host                      | `smtp.mailtrap.io`  |
+| `MAIL_PORT`    | Integer | ✅       | SMTP port                      | `2525`              |
+| `MAIL_USERNAME`| String  | ✅       | SMTP username                  | *(secret)*          |
+| `MAIL_PASSWORD`| String  | ✅       | SMTP password                  | *(secret)*          |
+| `MAIL_ENCRYPTION`| String| ❌      | TLS/SSL                        | `tls`               |
+| `MAIL_FROM_ADDRESS`| Email| ✅     | Sender email address           | `noreply@axone.com` |
+| `MAIL_FROM_NAME`| String | ✅      | Sender name                    | `Axone Infotech`    |
+
+---
+
+## Queue Settings
+
+| Variable          | Type   | Required | Description                               | Example   |
+|-------------------|--------|----------|-------------------------------------------|-----------|
+| `QUEUE_CONNECTION`| String | ❌       | Queue driver: `sync`, `database`, `redis` | `database`|
+
+---
+
+## Redis Settings (If Used)
+
+| Variable          | Type    | Required | Description         | Example     |
+|-------------------|---------|----------|---------------------|-------------|
+| `REDIS_HOST`      | String  | ❌       | Redis server host   | `127.0.0.1` |
+| `REDIS_PASSWORD`  | String  | ❌       | Redis password      | `null`      |
+| `REDIS_PORT`      | Integer | ❌       | Redis port          | `6379`      |
+
+---
+
+## Notes
+
+- Copy `.env.example` to `.env` to start: `cp .env.example .env`
+- Run `php artisan key:generate` to fill `APP_KEY` automatically.
+- **Never commit `.env` to the repository.** It is listed in `.gitignore`.
+- For production, set `APP_DEBUG=false` and `APP_ENV=production`.
