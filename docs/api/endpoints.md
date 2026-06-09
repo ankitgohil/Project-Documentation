@@ -6,14 +6,10 @@ All API endpoints for the Product Management System.
 
 ## Authentication
 
-
-
-| Title     | Name                   | Data                        |
-| --------- | ---------------------- | --------------------------- |
-| Ankit 001 | Gohil Ankit Rajeshbhai | ipdated data file on li9ve  |
-|           |                        |                             |
-
-
+| Title     | Name                   | Data                       |
+| --------- | ---------------------- | -------------------------- |
+| Ankit 001 | Gohil Ankit Rajeshbhai | ipdated data file on li9ve |
+|           |                        |                            |
 
 All **web routes** use Laravel **session-based authentication** (Laravel Breeze / Sanctum). The `auth` middleware protects all admin routes.
 
