@@ -1,8 +1,8 @@
-# API Endpoints | Product Management System
+# API Endpoints Ankit | Product Management System
 
 All API endpoints for the Product Management System.
 
----
+***
 
 ## Authentication
 
@@ -10,7 +10,7 @@ All **web routes** use Laravel **session-based authentication** (Laravel Breeze 
 
 The **external API** (`/api/identify-customer`) is a **public endpoint** — no Bearer token or session required.
 
----
+***
 
 ## External API Endpoints
 
@@ -21,6 +21,7 @@ The **external API** (`/api/identify-customer`) is a **public endpoint** — no 
 **Auth Required:** No
 
 **Request Body:**
+
 ```json
 {
   "db_name": "customer_db_name",
@@ -42,20 +43,21 @@ The **external API** (`/api/identify-customer`) is a **public endpoint** — no 
 
 **Response Codes:**
 
-| `response_code` | `status` | Meaning                        |
-|-----------------|----------|--------------------------------|
-| `201`           | `true`   | New device registered, active  |
-| `202`           | `true`   | Device updated, active         |
-| `4001`          | `false`  | Subscription expired           |
-| `4002`          | `true`   | Subscription is future         |
-| `4003`          | `false`  | Customer account disabled      |
-| `4004`          | `false`  | No active subscription         |
-| `4005`          | `false`  | Device disabled                |
-| `422`           | `false`  | Validation error               |
-| `404`           | `false`  | db_name not found              |
-| `500`           | `false`  | Server error                   |
+| `response_code` | `status` | Meaning                       |
+| --------------- | -------- | ----------------------------- |
+| `201`           | `true`   | New device registered, active |
+| `202`           | `true`   | Device updated, active        |
+| `4001`          | `false`  | Subscription expired          |
+| `4002`          | `true`   | Subscription is future        |
+| `4003`          | `false`  | Customer account disabled     |
+| `4004`          | `false`  | No active subscription        |
+| `4005`          | `false`  | Device disabled               |
+| `422`           | `false`  | Validation error              |
+| `404`           | `false`  | db\_name not found            |
+| `500`           | `false`  | Server error                  |
 
 **Success Response Example:**
+
 ```json
 {
   "status": true,
@@ -92,40 +94,40 @@ The **external API** (`/api/identify-customer`) is a **public endpoint** — no 
 }
 ```
 
----
+***
 
 ## Internal AJAX Endpoints (Web, Auth Required)
 
 These endpoints are called by the React frontend and require an active admin session.
 
-| Method | Endpoint                                 | Returns                                  |
-|--------|------------------------------------------|------------------------------------------|
-| GET    | `/api/products/{product}/plans`          | Array of active subscription plans       |
-| GET    | `/api/plans/{plan}/details`              | Plan with modules/submodules/permissions |
-| GET    | `/api/products/{product}/structure`      | Full product module hierarchy            |
-| GET    | `/api/products/{product}/modules`        | Modules for a specific product           |
-| GET    | `/api/modules/{module}/submodules`       | Submodules for a specific module         |
-| GET    | `/api/products/{product}/hierarchy`      | Full Module→Sub→Permission tree          |
-| GET    | `/locations/countries`                   | All countries                            |
-| GET    | `/locations/states/{country}`            | States for a country                     |
-| GET    | `/locations/cities/{state}`              | Cities for a state                       |
-| GET    | `/reports/product-customer-report/details` | Subscription detail data (JSON)        |
+| Method | Endpoint                                   | Returns                                  |
+| ------ | ------------------------------------------ | ---------------------------------------- |
+| GET    | `/api/products/{product}/plans`            | Array of active subscription plans       |
+| GET    | `/api/plans/{plan}/details`                | Plan with modules/submodules/permissions |
+| GET    | `/api/products/{product}/structure`        | Full product module hierarchy            |
+| GET    | `/api/products/{product}/modules`          | Modules for a specific product           |
+| GET    | `/api/modules/{module}/submodules`         | Submodules for a specific module         |
+| GET    | `/api/products/{product}/hierarchy`        | Full Module→Sub→Permission tree          |
+| GET    | `/locations/countries`                     | All countries                            |
+| GET    | `/locations/states/{country}`              | States for a country                     |
+| GET    | `/locations/cities/{state}`                | Cities for a state                       |
+| GET    | `/reports/product-customer-report/details` | Subscription detail data (JSON)          |
 
----
+***
 
 ## Web Resource Routes Summary
 
-| Resource              | Route Prefix              | CRUD Methods Supported           |
-|-----------------------|---------------------------|----------------------------------|
-| Roles                 | `/roles`                  | index, create, store, edit, update, destroy |
-| Users                 | `/users`                  | index, create, store, edit, update, destroy |
-| Countries             | `/countries`              | index, create, store, edit, update, destroy |
-| States                | `/states`                 | index, create, store, edit, update, destroy |
-| Cities                | `/cities`                 | index, create, store, edit, update, destroy |
-| Products              | `/products`               | index, create, store, edit, update, destroy |
-| Subscription Plans    | `/subscription-plans`     | index, create, store, edit, update, destroy |
-| Modules               | `/modules`                | index, create, store, edit, update, destroy |
-| Submodules            | `/submodules`             | index, create, store, edit, update, destroy |
-| Product Permissions   | `/product-permissions`    | index, create, store, edit, update, destroy |
-| Customers             | `/customers`              | index, create, store, edit, update, destroy |
-| Subscriptions         | `/subscriptions`          | index, create, store, edit, update, destroy |
+| Resource            | Route Prefix           | CRUD Methods Supported                      |
+| ------------------- | ---------------------- | ------------------------------------------- |
+| Roles               | `/roles`               | index, create, store, edit, update, destroy |
+| Users               | `/users`               | index, create, store, edit, update, destroy |
+| Countries           | `/countries`           | index, create, store, edit, update, destroy |
+| States              | `/states`              | index, create, store, edit, update, destroy |
+| Cities              | `/cities`              | index, create, store, edit, update, destroy |
+| Products            | `/products`            | index, create, store, edit, update, destroy |
+| Subscription Plans  | `/subscription-plans`  | index, create, store, edit, update, destroy |
+| Modules             | `/modules`             | index, create, store, edit, update, destroy |
+| Submodules          | `/submodules`          | index, create, store, edit, update, destroy |
+| Product Permissions | `/product-permissions` | index, create, store, edit, update, destroy |
+| Customers           | `/customers`           | index, create, store, edit, update, destroy |
+| Subscriptions       | `/subscriptions`       | index, create, store, edit, update, destroy |
