@@ -1,4 +1,4 @@
-# API Endpoints Ankit | Product Management System
+# API Endpoints | Product Management System
 
 All API endpoints for the Product Management System.
 
